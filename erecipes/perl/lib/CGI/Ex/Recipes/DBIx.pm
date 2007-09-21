@@ -23,16 +23,23 @@ our $VERSION = '0.02';
 sub dbh {
     my $self = shift;
     if (! $self->{'dbh'}) {
-        my $file   = ($ENV{SITE_ROOT} || $self->base_dir_abs->[0] ). $self->conf->{'db_file'}
+        warn 'New db connetion initiated!';
+        my $file   = ($ENV{SITE_ROOT} || $self->base_dir_abs->[0] ) . '/' . $self->conf->{'db_file'}
                         || './data/recipes.sqlite';
         my $exists = -e $file;
         my $package =  $self->{'_package'} || 'somethingsligthlylessborring';
-        $self->{'dbh'} = DBI->connect_cached("dbi:SQLite:dbname=$file", '', '', 
-                                      { 'private_'. $package => $package , RaiseError => 1});
+        $self->{'dbh'} = DBI->connect(
+            "dbi:SQLite:dbname=$file", '', '', 
+            {
+                #'private_'. $package => $package , 
+                RaiseError => 1,
+            }
+        );
         $self->create_tables if ! $exists;
     }
     return $self->{'dbh'};
 }
+
 
 sub create_tables {
     my $self = shift;

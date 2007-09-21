@@ -44,9 +44,21 @@ sub finalize {
     );
     $self->add_to_form(success => "Recipe updated in the database");
     #make so default page displays the category in which this item is
-    $form->{'id'} = $form->{'pid'};
+    #$form->{'id'} = $form->{'pid'};
+    $self->set_ready_validate(0);
+    
+    #CGI::Ex::App also has methods that allow for dynamic changing of the path, 
+    #so that each step can determine which step to do next 
+    #(see the jump, append_path, insert_path, and replace_path methods).
+    $self->append_path('view');
     return 1;
 }
+
+=pod
+
+sub next_step { 'view' }
+
+=cut
 
 1; # End of CGI::Ex::Recipes::Edit
 

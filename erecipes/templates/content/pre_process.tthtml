@@ -10,7 +10,7 @@ today            = app.strftmime("%Y-%m-%d ", app.now);
 #load some plugin
 USE menu = Menu({recurse => 5});
 
-%]
+%] 
 [%#
     well some macros allso
 -%]

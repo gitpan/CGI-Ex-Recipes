@@ -14,7 +14,7 @@ use CGI::Ex::Recipes::DBIx qw(
     recipes
 );
 
-our $VERSION = '0.04';
+our $VERSION = '0.06';
 
 sub ext_conf {
     my $self = shift;
@@ -22,13 +22,31 @@ sub ext_conf {
     return $self->{'ext_conf'} || 'conf';
 }
 
-sub load_conf { $_[0]->{'load_conf'} || 1 }
+#overwritten the new (in 2.18)implementation of 'conf' so
+# the application can find its, given  Recipes.conf
+sub conf {
+    my $self = shift;
+    $self->{'conf'} = pop if @_ == 1;
+    return $self->{'conf'} ||= do {
+    my $conf = $self->conf_obj->read($self->conf_file, {no_warn_on_fail => 1}) || croak $@;
+#my $conf = $self->conf_file;
+#$conf = ($self->conf_obj->read($conf, {no_warn_on_fail => 1}) || $self->conf_die_on_fail ? croak $@ : {}) if ! $conf;
+        my $hash = $self->conf_validation;
+        if ($hash && scalar keys %$hash) {
+            my $err_obj = $self->val_obj->validate($conf, $hash);
+            die $err_obj if $err_obj;
+        }
+        $conf;
+    }
+}
+ 
+sub load_conf { 1 }
 
 sub base_dir_abs {$_[0]->{'base_dir_abs'} || ['./']}
 
 sub allow_morph {
     my ( $self, $step ) = @_;
-   return $self->conf->{allow_morph}->{$step};
+    return $self->conf->{allow_morph}->{$step};
 }
 
 #...but rather override the path_info_map hook for a particular step.
@@ -51,9 +69,9 @@ sub skip { shift->form->{'id'} ? 0 : 1 }
 
 #ADDING AUTHENTICATION TO THE ENTIRE APPLICATION
 sub get_pass_by_user {
-   my $self = shift;
-   my $user = shift;
-   return $self->conf->{users}{$user};
+    my $self = shift;
+    my $user = shift;
+    return $self->conf->{users}{$user};
 }
 
 #ADDING AUTHENTICATION TO INDIVIDUAL STEPS
@@ -97,21 +115,22 @@ sub hash_base {
 
 
 sub post_navigate {
-   my $self = shift;
-   # show what happened
-   if ($self->{'debug'}) {
-       #debug $self->dump_history;
-       #debug $self->conf;
-       #debug \%ENV;
-       #debug $self->cookies;
-       debug $self->form;
-       #debug \%INC;
-   }
-   #or do other usefull things.
+    my $self = shift;
+    # show what happened
+    if ($self->{'debug'}) {
+        debug $self->dump_history if $self->conf->{debug}{dump_history};
+        debug $self->conf if $self->conf->{debug}{conf};
+        debug \%ENV if $self->conf->{debug}{ENV};
+        debug $self->cookies if $self->conf->{debug}{cookies};
+        debug $self->form if $self->conf->{debug}{form};
+        debug \%INC if $self->conf->{debug}{INChash};
+        debug \@INC if $self->conf->{debug}{INCarray};
+        debug $self->{_package} if $self->conf->{debug}{_package};
+    }
+    #or do other usefull things.
 }
 
 sub pre_navigate { 
-
     #efectively logout
     require CGI::Ex::Auth;
     $_[0]->CGI::Ex::Auth::delete_cookie({'key'=>'cea_user'}) 

@@ -8,8 +8,12 @@ use CGI();
 use File::Find;
 use File::Copy;
 use File::Path;
+use Cwd qw(realpath);
+use File::Spec::Functions qw(rel2abs);
+use IO::File;
 use Config;
-our $VERSION = '0.1';
+our $VERSION = '0.2';
+our ($src,$dest);
 
 #starts the install procedure
 sub new {
@@ -24,6 +28,7 @@ sub new {
 sub _init {
     my $self = shift;
     $self->{q} = CGI->new();
+    if(!$self->{q}->param()){croak "Usage: ".usage()}
     #1. Guess the mode - offline is default
     
     #2. Collect info about the environment and exit gracefully if 
@@ -34,6 +39,7 @@ sub _init {
 #install the application
 sub run {
     my $self = shift;
+    
     $self->{q}->print( Dumper( \%{$self->{q}->Vars()} ) );
     $self->install;
 }
@@ -50,10 +56,9 @@ sub install {
     
     print "Using $Config{perlpath} " . $Config{version} . ' on ' . $Config{'osname'} . $/;
     print 'Using UTF8LOCALE - GOOOD!' . $/ if ${^UTF8LOCALE};
-    my $src  = $self->{q}->param('src') || croak('Please provide source directory.'.$/.usage() );
-    my $dest = $self->{q}->param('dest')|| croak('Please provide destination directory.'.$/.usage());
-    $src  =~ s|/\z||;
-    $dest =~ s|/\z||;
+    $src  = realpath( rel2abs $self->{q}->param('src') ) || croak('Please provide source directory.'.$/.usage() );
+    $dest = realpath( rel2abs $self->{q}->param('dest') )|| croak('Please provide destination directory.'.$/.usage());
+
     
     #check if $src and $dest are the same.
     if ( $src eq $dest ) {
@@ -97,13 +102,11 @@ sub install {
     ##############################
     #blah ... we can start work...
     ##############################
-    $self->_install;
+    $self->_install($src,$dest);
 }# end sub install
 
 sub _install {
     my $self = shift;
-    my $src  = $self->{q}->param('src');
-    my $dest = $self->{q}->param('dest');
     print "Installing $src/* to $dest/*...$/";
     #sleep 1;
     finddepth(
@@ -128,14 +131,25 @@ sub _install {
                     if ( !-d $file     ){
                         copy( $file, $file_dest) or die "Copy failed: $!";
                         
-                        
-                        #chmod pl and cgi appropriately
                         if($file_dest =~/\.(pl|cgi)$/) {
-                            chmod 0755,$file_dest and change_shebang($file_dest);
+                            chmod 0755,$file_dest and change_shebang_sitepackage_and_siteroot($file_dest);
+                        }elsif($file_dest =~/(httpd\.conf)$/){
+                            my $fh = IO::File->new("< $file_dest");
+                            my @lines;
+                            ( $fh->binmode and @lines =  $fh->getlines and $fh->close ) || die $!;
+                            foreach ( 0 .. @lines-1 ) {
+                               $lines[$_] =~ s|#Include (.*?)|#Include $dest|;
+                                $lines[$_] =~ s|Directory "(.*?)"|Directory "$dest"| ;
+                                $lines[$_] =~ s|PerlRequire\s+(.*?)/perl/bin/startup.pl|PerlRequire $dest/perl/bin/startup.pl|;
+
+                            }
+                            $fh = IO::File->new("> $file_dest");     
+                            $fh->binmode and $fh->print(@lines) and $fh->close;
                         }
-                            
+                        
                     }
-                        #make (tmp|conf|logs|data|files) and below world writable
+                        #make (tmp|conf|logs|data|files) and below world writable so the server can write there
+                        #TODO:think about a safer/smarter way
                         chmod 0777,$file_dest
                             if($file_dest =~/(tmp|conf|logs|data|files)/);
                         #TODO:REMEMBER to write a script which will change permissions as needed
@@ -155,24 +169,22 @@ sub _install {
 sub usage {
     'Usage:'.$/.$0 .' src=/from/path dest=/to/path'.$/;
 }
-sub change_shebang {
+sub change_shebang_sitepackage_and_siteroot {
     my ( $file ) = @_;
-    my @THE_FILE;
-    open THE_FILE, "<$file";
-    binmode THE_FILE;
-    @THE_FILE = <THE_FILE>;
-    close THE_FILE;
-    open THE_FILE, ">$file";
-    binmode THE_FILE;
+    my $fh = IO::File->new("< $file");
+    my @lines;
+    ( $fh->binmode and @lines =  $fh->getlines and $fh->close ) || die $!;
     my $new_shebang = "$Config{perlpath}".$Config{_exe};
-    print "changing shebang to ". $new_shebang.$/;      
-    $new_shebang && $THE_FILE[0]=~ s/^#!\s*\S+/#!$new_shebang/s ;
-
-    
-    foreach my $line (@THE_FILE){
-        print THE_FILE $line;
+    $new_shebang && $lines[0]=~ s/^#!\s*\S+/#!$new_shebang/s ;
+    my $new_package = $dest; 
+    $new_package =~ s|/|_|g ;
+    foreach ( 0 .. @lines-1 ) {
+        $lines[$_]=~ s/package\s+ourobscurepackage/package $new_package/ ;
+        $lines[$_]=~ s/\$ENV\{SITE_ROOT\}\s*?=.+/\$ENV\{SITE_ROOT\} = '$dest';/;
     }
-    close THE_FILE;
+    $fh = IO::File->new("> $file");     
+    ( $fh->binmode and $fh->print(@lines) and $fh->close ) || die $!;
 }
+
 
 1;

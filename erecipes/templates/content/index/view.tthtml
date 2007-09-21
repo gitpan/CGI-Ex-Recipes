@@ -18,8 +18,8 @@
     <p>[% analysis %]</p>
     <h3>Solution:</h3>
     <p>[% solution %]</p>
-    
-    <span class="right">Last edited: [% app.strftmime("%Y-%m-%d %H:%M", tstamp); %]</span>
-    Created:[% app.strftmime("%Y-%m-%d %H:%M", date_added); %]
+    <hr style="margin-bottom:2em;" />
+    <span class="right"><b>Last edited:</b> [% app.strftmime("%Y-%m-%d %H:%M", tstamp); %]</span>
+    <span class="left"><b>Created:</b> [% app.strftmime("%Y-%m-%d %H:%M", date_added); %]</span>
 
 </div>
