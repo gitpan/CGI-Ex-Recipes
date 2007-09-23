@@ -3,11 +3,13 @@ use utf8;
 use warnings;
 use strict;
 use base qw(CGI::Ex::Recipes);
+use CGI::Ex::Dump qw(debug dex_warn ctrace dex_trace);
 our $VERSION = '0.3';
 
 sub hash_common { 
     my $self = shift;
     require CGI::Ex::Recipes::Edit;
+    #dex_trace; debug $self;
     $self->CGI::Ex::Recipes::Edit::hash_common(@_);
 }
 

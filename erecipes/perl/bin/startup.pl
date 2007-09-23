@@ -11,6 +11,10 @@ use CGI::Ex;
 use CGI::Ex::Conf;
 use Template::Alloy;
 use CGI::Ex::Recipes;
+our %CACHE_HASH = ();
+use CGI::Ex::Recipes::Cache;
+use CGI::Ex::Recipes::Template::Menu;
+
 our $conf_obj = CGI::Ex::Conf->new({'paths'=>[$ENV{SITE_ROOT}],'directive'=>'MERGE'});
 our $conf = $conf_obj->read($ENV{SITE_ROOT} .'/conf/Recipes.conf');
     $conf->{base_dir_abs} = $ENV{SITE_ROOT};
@@ -20,4 +24,5 @@ our $dbh = DBI->connect_cached(
                'dbi:SQLite:dbname=' . $ENV{SITE_ROOT} . '/' . $conf->{'db_file'}, '', '', 
                {'private_'. __PACKAGE__ => __PACKAGE__ , RaiseError => 1}
            );
+our $cache_obj = CGI::Ex::Recipes::Cache->new({cache_hash =>\%CACHE_HASH, dbh=>$dbh });
 1;

@@ -40,3 +40,28 @@ The distribution is using Install.pm to copy the example
 application wherever the user wants(See Makefile.PL).
 The inspiration came from TT2's Makefile.PL.
 Thanks, Andy!!!
+
+0.05 2007-09-01 17:32:00
+Overwriten CGI::Ex::App::conf since it does not behaves 
+(as expected) in CGI::Ex 2.18 and causes a die.
+Added conditional debugging depending on configuration debug hash.
+Changed next step of 'edit' to 'view' so after editing a recipe it is displayed.
+Added new category ('VIM') to the recipes.sqlite database.
+
+0.06 2007-09-21 21:52:08
+Enhanced CGI::Ex::Recipes::Install.
+    Now it can install a fully independed application based on the application from which it is run.
+    The shebang, $ENV{SITE_ROOT}, and package ourobscurepackage are replaced
+    with values reflecting the perl interpreter with which install.pl was run 
+    and the new installation directory. This is a primitive but effective way to run not colliding 
+    applications even on the same virtual host and using the same interpreter under mod_perl.
+Apache/mod_perl configuration section minimized to "SetHandler  perl-script..." for <Files "*.pl">
+The startup.pl is now "require"ed in a BEGIN block in index.pl
+As a result it is enough to have "AllowOverride All" in httpd.conf file or similar for a virtual host.
+
+0.07 2007-09-23 22:07:13
+Added CGI::Ex::Recipes::Cache.
+    This is the first module in the application that has tests.
+Removed default t/ directory. Now tests are in erecipes/perl/t/*.t
+
+

@@ -58,3 +58,10 @@ Enhanced CGI::Ex::Recipes::Install.
 Apache/mod_perl configuration section minimized to "SetHandler  perl-script..." for <Files "*.pl">
 The startup.pl is now "require"ed in a BEGIN block in index.pl
 As a result it is enough to have "AllowOverride All" in httpd.conf file or similar for a virtual host.
+
+0.07 2007-09-23 22:07:13
+Added CGI::Ex::Recipes::Cache.
+    This is the first module in the application that has tests.
+Removed default t/ directory. Now tests are in erecipes/perl/t/*.t
+
+

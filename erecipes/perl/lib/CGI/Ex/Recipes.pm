@@ -3,9 +3,10 @@ use utf8;
 use warnings;
 use strict;
 use Carp qw(croak);
+use Data::Dumper;
 use base qw(CGI::Ex::App);
 use CGI::Ex::Die register => 1;
-use CGI::Ex::Dump qw(debug dex_warn);
+use CGI::Ex::Dump qw(debug dex_warn ctrace dex_trace);
 use CGI::Ex::Recipes::DBIx qw(
     dbh
     sql
@@ -14,7 +15,7 @@ use CGI::Ex::Recipes::DBIx qw(
     recipes
 );
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 sub ext_conf {
     my $self = shift;
@@ -89,21 +90,7 @@ sub auth_args {
         $self->conf->{auth_args}
     };
 }
-#Me in 0.01:
-#   ADDING ADDITIONAL TEMPLATE VARIABLES
-#   the application object for all steps
 
-#Paul on 25.06.2007 21:00:
-#   In the hash_base method you store $self in $self->{'hash_base'}.  This
-#   presents a problem in that you have created a circular ref.  This
-#   is "somewhat" fine in a CGI environment because it will be cleaned up in the
-#   global destruction phase, but in a mod_perl environment that ref will stay
-#   resident until apache is restarted.
-
-#   The way to do something like that is to do....
-
-#Me now:   
-#   and here it is  the application object for all steps available in templates
 sub hash_base {
     my $self = shift;
     my $hash = $self->SUPER::hash_base(@_);
@@ -117,7 +104,7 @@ sub hash_base {
 sub post_navigate {
     my $self = shift;
     # show what happened
-    if ($self->{'debug'}) {
+    if (values %{$self->{'debug'}}) {
         debug $self->dump_history if $self->conf->{debug}{dump_history};
         debug $self->conf if $self->conf->{debug}{conf};
         debug \%ENV if $self->conf->{debug}{ENV};
@@ -126,6 +113,7 @@ sub post_navigate {
         debug \%INC if $self->conf->{debug}{INChash};
         debug \@INC if $self->conf->{debug}{INCarray};
         debug $self->{_package} if $self->conf->{debug}{_package};
+        debug [sort keys %{$self->{_cache}}] if $self->conf->{debug}{_cache};
     }
     #or do other usefull things.
 }
@@ -159,6 +147,14 @@ sub step_args {
     }
 }
 
+#Returns the cache object.
+sub cache {
+    my $self = shift;
+    return $self->{cache} || do {
+        require CGI::Ex::Recipes::Cache;
+        $self->{cache} = CGI::Ex::Recipes::Cache->new({ cache_hash =>{}, dbh => $self->dbh });
+    };
+}
 
 
 #========================== UTIL ==============================
@@ -178,10 +174,6 @@ __END__
 
 CGI::Ex::Recipes - A usage example for CGI::Ex::App!
 
-=head1 VERSION
-
-Version 0.01
-
 =head1 SYNOPSIS
 
 You may find in index.cgi the following:
@@ -200,13 +192,22 @@ the recomendations and features which the framework provides.
 You are encouraged to play with it and use it as a starting point  for far more 
 complex and customized applications.
 
+Currently an SQLite database is used, but it should be easy to switch to whatever database you like.
+With very little change this application should be able to use MySQL as a backend.
+
+If you need another databse you should know how to adapt the application.
+
 =head1 REQUIREMENTS
-    
+
+Below are listed only packages which are not available in the standart Perl 5.8 distribution.
+
     CGI::Ex
     DBI
     DBD::SQLite
     SQL::Abstract
     YAML
+
+DBI and DBD::SQLite come with ActivePerl.
 
 =head1 INSTALL
 
@@ -217,10 +218,13 @@ complex and customized applications.
 
 =head1 MOD_PERL
 
-See in the distribution index.pl and perl/bin/startup.pl.
-Modify these files to meet your needs.
-More to write...
+As of VERSION 0.6 this application should run out of the box under mod_perl 2.
+You just need to have "AllowOverride All" configuration option set for the directory
+where the application is installed.
+In the C<conf> directory of the installed application you will find an example httpd.conf.
 
+See also index.pl and perl/bin/startup.pl.
+Modify these files to meet your needs.
 
 =head1 METHODS
 
@@ -240,7 +244,6 @@ common to go up straight to CGI::Ex::App.
 
 Bellow are described  overriten methods and methods defined in this package.  
 
-
 =head2 load_conf
 
 Returns  the value of C<$self-E<gt>{load_conf}> or 1(TRUE) by default.
@@ -254,11 +257,9 @@ Returns 0 after executing C<$self-E<gt>step_args()>.
 Blindly returns the current value of allow_morph key in Recipes.conf,
 which should be interpreted as TRUE or FALSE.
 
-
 =head2 path_info_map
 
-This is just our example implementation, following recomendations in L<CGI::Ex::App>.
-
+This is just our example implementation, following recomendations in L<CGI::Ex::App|CGI::Ex::App>.
 
 =head2 skip
 
@@ -266,7 +267,7 @@ Ran at the beginning of the loop before prepare, info_complete, and finalize are
 If it returns true, nav_loop moves on to the next step (the current step is skipped).
 
 In our case we bind it to the presence of the C<id> parameter from the HTTP request. 
-So if there is an C<id> parameter it returns 0 otherwise 1.
+So if there is an C<id> parameter it returns 0, otherwise 1.
 
 =head2 get_pass_by_user
 
@@ -290,7 +291,50 @@ and returns a hashref. The template_args are merged in also.
 
 =head2 hash_base
 
+The extra work done here is that we use L<Scalar::Util|Scalar::Util> to C<weaken> 
+the reference to the main application which we pass for use from within the templates and 
+template plugins. Without doing this we may have problems under persistent environments, such as 
+mod_perl. This is very handy when you need to dynamically generate HTML or 
+use the attached DBI object. 
+See L<CGI::Ex::Recipes::Template::Menu|CGI::Ex::Recipes::Template::Menu>, L<CGI::Ex::App|CGI::Ex::App>.
+
+=head2 base_dir_abs
+
+See also L<CGI::Ex::App|CGI::Ex::App>.
+
+=head2 conf
+
+Currently we use the old C<CGI::Ex::App::conf()>, 
+so the configuration file is found as it was before CGI::Ex 2.18. 
+See also L<CGI::Ex::App|CGI::Ex::App>.
+
+=head2 ext_conf
+
+We prefer C<conf> file extension as default over C<pl>.
+See also L<CGI::Ex::App|CGI::Ex::App>.
+
+=head2 pre_navigate
+
+We have naive code here for logging out a user.
+See also L<CGI::Ex::App|CGI::Ex::App>.
+
 =head2 post_navigate
+
+Currently I placed here a set of C<debug> statements for fun.
+See also L<CGI::Ex::App|CGI::Ex::App>.
+
+
+=head2 step_args
+
+hook/method - returns parsed arguments from C<$self->form->{step_info}> 
+for the curent step.
+Initially called in pre_step.
+Not in L<CGI::Ex::App|CGI::Ex::App>.
+
+=head2 cache
+
+Returns the cache object. See L<CGI::Ex::Recipes::Cache|CGI::Ex::Recipes::Cache>.
+Not in L<CGI::Ex::App|CGI::Ex::App>.
 
 =head1 UTILITY METHODS
 

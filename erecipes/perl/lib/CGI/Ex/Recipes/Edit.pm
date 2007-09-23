@@ -2,6 +2,7 @@ package CGI::Ex::Recipes::Edit;
 use utf8;
 use warnings;
 use strict;
+use CGI::Ex::Dump qw(debug dex_warn ctrace dex_trace);
 use base qw(CGI::Ex::Recipes);
 our $VERSION = '0.03';
 
@@ -19,7 +20,6 @@ sub hash_common {
 sub finalize {
     my $self = shift;
     my $form = $self->form;
-
     my $s = "SELECT COUNT(*) FROM recipes WHERE title = ? AND id != ?";
     my ($count) = $self->dbh->selectrow_array($s, {}, $form->{'title'}, $form->{'id'});
     if ($count) {
@@ -51,6 +51,7 @@ sub finalize {
     #so that each step can determine which step to do next 
     #(see the jump, append_path, insert_path, and replace_path methods).
     $self->append_path('view');
+    $self->cache->clear;
     return 1;
 }
 

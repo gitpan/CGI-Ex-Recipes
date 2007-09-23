@@ -13,8 +13,8 @@ $main::RECIPES_PREFIX = ExtUtils::MakeMaker::prompt(
 WriteMakefile(
     NAME                => 'CGI::Ex::Recipes',
     AUTHOR              => 'Красимир Беров <k.berov@gmail.org>',
-    VERSION_FROM        => 'lib/CGI/Ex/Recipes.pm',
-    ABSTRACT_FROM       => 'lib/CGI/Ex/Recipes.pm',
+    VERSION_FROM        => 'erecipes/perl/lib/CGI/Ex/Recipes.pm',
+    ABSTRACT_FROM       => 'erecipes/perl/lib/CGI/Ex/Recipes.pm',
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More'    => 0,
@@ -26,6 +26,7 @@ WriteMakefile(
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Ex-Recipes-*' },
+    test				=> {TESTS => 'erecipes/perl/t/*.t'}
 );
 
 sub hello {
@@ -42,7 +43,7 @@ INSTALLATION
 Just place 'erecipes' into some viewable 
 by the server dir with option 'AllowOverride All'.
 Fire up the server and point the browser to
-/your/destination/path/index.cgi.
+http:yourhost/your/destination/path/index.cgi.
 
 NOTE
 At any later time you can also run:

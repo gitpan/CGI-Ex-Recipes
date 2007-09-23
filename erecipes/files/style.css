@@ -139,8 +139,10 @@ pre {
     margin-bottom:0.8em;
 }
 
-form {width:98%;}
-
+form {
+    width:98%; 
+}
+#theform
 label {font-size:1.2em}
 
 input, textarea, select {
@@ -160,6 +162,13 @@ input, textarea, select {
 fieldset {
     border:1px solid #eee;
     padding:0.5em;
+    background-color:GhostWhite;
+    
+    /*
+    GhostWhite===#F8F8FF
+    FloralWhite===#FFFAF0
+    LavenderBlush===#FFF0F5
+    Lavender===#E6E6FA*/
 }
 
 .button, .submit {border:1px solid #779;background:#eee}

@@ -1,15 +1,15 @@
 package ourobscurepackage;
-BEGIN {
-    $ENV{SITE_ROOT} = "/opt/apache2/htdocs/recipes/";
-    require $ENV{SITE_ROOT} . '/perl/bin/startup.pl';
-    warn '$ENV{SITE_ROOT}:'.$ENV{SITE_ROOT};
-}
+#BEGIN {
+#    $ENV{SITE_ROOT} = "/opt/apache2/htdocs/recipes/";
+#    require $ENV{SITE_ROOT} . '/perl/bin/startup.pl';
+#}
 CGI::Ex::Recipes->new({ 
     'conf' => $conf,
     'conf_obj' => $conf_obj,
     'template_obj' =>$template_obj,
     'dbh' => $dbh,
     '_package' => __PACKAGE__,
+    'cache' =>$cache_obj,
 })->navigate();
 
 

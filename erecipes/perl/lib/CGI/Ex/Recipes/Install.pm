@@ -177,7 +177,7 @@ sub change_shebang_sitepackage_and_siteroot {
     my $new_shebang = "$Config{perlpath}".$Config{_exe};
     $new_shebang && $lines[0]=~ s/^#!\s*\S+/#!$new_shebang/s ;
     my $new_package = $dest; 
-    $new_package =~ s|/|_|g ;
+    $new_package =~ s|/|_|g;
     foreach ( 0 .. @lines-1 ) {
         $lines[$_]=~ s/package\s+ourobscurepackage/package $new_package/ ;
         $lines[$_]=~ s/\$ENV\{SITE_ROOT\}\s*?=.+/\$ENV\{SITE_ROOT\} = '$dest';/;

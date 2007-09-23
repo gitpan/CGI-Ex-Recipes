@@ -1,8 +1,10 @@
 #!perl -T
-
+BEGIN {
+    use lib qw( ./erecipes/perl/lib );
+}
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 sub not_in_file_ok {
     my ($filename, %regex) = @_;
@@ -45,12 +47,17 @@ sub module_boilerplate_ok {
     );
 }
 
+
 module_boilerplate_ok('lib/CGI/Ex/Recipes.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/View.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/Edit.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/Add.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/Delete.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/Template/Menu.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/DBIx.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/Default.pm');
-module_boilerplate_ok('lib/CGI/Ex/Recipes/Imager.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/View.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/Edit.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/Add.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/Delete.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/Template/Menu.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/DBIx.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/Default.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/Imager.pm');
+module_boilerplate_ok('erecipes/perl/lib/CGI/Ex/Recipes/Cache.pm');
+
+

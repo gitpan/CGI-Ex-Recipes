@@ -34,7 +34,6 @@ sub run {
 }
 
 #================METHODS CALLABLE FROM OUTSIDE================
-
 #lists only item in the current category $id
 sub list_item {
     my $self = shift;
@@ -42,6 +41,9 @@ sub list_item {
     my $app  = $self->{app} ||= $self->get('app');
     my $cgix = $app->cgix;
     my $out;
+    my $cache_key = 'list_item_' . $item->{id} . ( $app->is_authed ? 1 : '' );
+    #try cache support
+    if( $out = $app->cache->get($cache_key) ){ return $out; }
     if ( $self->{'recurse_level'} >= $self->{'_PARAMS'}{recurse} ) {
         return $cgix->li( { class => 'recipes', style => 'color:red' },
             'Max recursion reached. ' . 'If you want more: USE menu = Menu(recurse => 10000);' );
@@ -62,7 +64,7 @@ sub list_item {
         {
             $out .= $self->list_item($list_item);
         }
-        return $cgix->li(
+        $out = $cgix->li(
             { class => 'recipes' },
             (   $app->is_authed
                 ? $cgix->a(
@@ -90,7 +92,7 @@ sub list_item {
             . ( $out ? $cgix->ul( { class => 'recipes' }, $out ) : '' );
     }
     else {
-        return $cgix->li(
+        $out = $cgix->li(
             { class => 'recipes' },
             (   $app->is_authed
                 ? $cgix->a(
@@ -116,24 +118,28 @@ sub list_item {
                 . $cgix->a( { href => $app->script_name . '/view/' . $item->{id} }, $item->{title} )
         );
     }
-
+    #try cache support
+    $app->cache->set($cache_key, $out);
+    return $out;
 }
+
 
 #called in default.tthtml.
 #lists all categorie under $id and items within them
-
 sub recipes_map {
     my $self = shift;
-    my $id   = shift
-        || 0;    #id from which to start. must be a category id or 0(Top)
+    my $id   = shift || 0;    #id from which to start. must be a category id or 0(Top)
     my $out = '';    # we will push HTML here
     $self->{'recurse_level'} = 0;
     my $app = $self->{app} ||= $self->get('app');
+    my $cache_key = 'recipes_map_'. $id . ( $app->is_authed ? 1 : '' );
+    #try cache support
+    if( $out = $app->cache->get($cache_key) ){ return $out; }
     foreach my $item ( @{ $app->recipes( undef, { pid => $id } ) } ) {
         $out .= $self->list_item($item);
     }
     my $cgix = $app->cgix;
-    return $cgix->ul(
+    $out = $cgix->ul(
         { class => 'recipes' },
         $cgix->li(
             { class => 'recipes' },
@@ -150,6 +156,9 @@ sub recipes_map {
             )
             . $out
     );
+    #try cache support
+    $app->cache->set($cache_key, $out);
+    return $out;
 }
 
 #====================METHODS USED INTERNALLY==================

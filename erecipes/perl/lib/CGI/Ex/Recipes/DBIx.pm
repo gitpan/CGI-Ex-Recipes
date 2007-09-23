@@ -23,7 +23,7 @@ our $VERSION = '0.02';
 sub dbh {
     my $self = shift;
     if (! $self->{'dbh'}) {
-        warn 'New db connetion initiated!';
+        
         my $file   = ($ENV{SITE_ROOT} || $self->base_dir_abs->[0] ) . '/' . $self->conf->{'db_file'}
                         || './data/recipes.sqlite';
         my $exists = -e $file;
@@ -35,7 +35,8 @@ sub dbh {
                 RaiseError => 1,
             }
         );
-        $self->create_tables if ! $exists;
+        $self->create_tables if !$exists;
+        warn 'New db connetion initiated!';
     }
     return $self->{'dbh'};
 }
@@ -65,6 +66,13 @@ sub create_tables {
             -- date_added: creation date in unix timestamp format
         date_added INTEGER NOT NULL
     )");
+
+$self->dbh->do("CREATE TABLE cache (
+        id VARCHAR(32) PRIMARY KEY,
+        value TEXT NOT NULL,
+        tstamp  INTEGER NOT NULL,
+        expires  INTEGER NOT NULL
+    )");
 }
 
 sub sql {
@@ -75,15 +83,15 @@ sub sql {
     return $self->{'sql'};
 }
 
+#Suitable for preparing a left menu in some view/template
 sub categories {
     my $self   = shift;
     my $fields = shift || [qw(id pid is_category title)];
-    my $where  = shift || {is_category=>1,pid=>0};
-    #make shure they have categories
+    my $where  = shift || {pid=>0};
+    #make shure we want categories
     $where->{is_category} ||= 1;
     my $order  = shift || ['sortorder'];
     my ($s, @bind) = $self->sql->select('recipes',$fields,$where,$order);
-
     return $self->dbh->selectall_arrayref($s,{Slice => {} ,MaxRows=>1000,},@bind);
 }
 
@@ -95,7 +103,6 @@ sub recipes {
     my $order  = shift || ['sortorder'];
     my ($s, @bind) = $self->sql->select('recipes',$fields,$where,$order);
     return $self->dbh->selectall_arrayref($s,{Slice => {} ,MaxRows=>1000,},@bind);
-
 }
 
 1; # End of CGI::Ex::Recipes::DBIx
@@ -187,3 +194,4 @@ This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
+
