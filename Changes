@@ -64,4 +64,6 @@ Added CGI::Ex::Recipes::Cache.
     This is the first module in the application that has tests.
 Removed default t/ directory. Now tests are in erecipes/perl/t/*.t
 
+0.08    2012-09-05 09:59 EEST
+        Fixed POD. added "=encoding utf8"
 

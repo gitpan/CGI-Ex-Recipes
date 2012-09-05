@@ -15,7 +15,7 @@ use CGI::Ex::Recipes::DBIx qw(
     recipes
 );
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 sub ext_conf {
     my $self = shift;
@@ -169,6 +169,8 @@ sub now {time};
 
 
 __END__
+
+=encoding utf8
 
 =head1 NAME
 
@@ -366,7 +368,7 @@ in the Subject line
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007 Красимир Беров, all rights reserved.
+Copyright 2007-2012 Красимир Беров, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

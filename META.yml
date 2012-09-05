@@ -1,16 +1,27 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         CGI-Ex-Recipes
-version:      0.07
-version_from: erecipes/perl/lib/CGI/Ex/Recipes.pm
-installdirs:  site
+---
+abstract: 'A usage example for CGI::Ex::App!'
+author:
+  - 'Красимир Беров <k.berov@gmail.org>'
+build_requires:
+  ExtUtils::MakeMaker: 0
+configure_requires:
+  ExtUtils::MakeMaker: 0
+dynamic_config: 1
+generated_by: 'ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: CGI-Ex-Recipes
+no_index:
+  directory:
+    - t
+    - inc
 requires:
-    CGI::Ex:                       2.18
-    DBD::SQLite:                   0
-    DBI:                           0
-    SQL::Abstract:                 0
-    Test::More:                    0
-    YAML:                          0.65
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30
+  CGI::Ex: 2.18
+  DBD::SQLite: 0
+  DBI: 0
+  SQL::Abstract: 0
+  Test::More: 0
+  YAML: 0.65
+version: 0.08

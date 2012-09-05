@@ -1,4 +1,3 @@
-.cvsignore
 Changes
 erecipes/.htaccess
 erecipes/conf/.htaccess
@@ -13,7 +12,6 @@ erecipes/index.cgi
 erecipes/index.pl
 erecipes/install.pl
 erecipes/logs/.htaccess
-erecipes/perl/.cvsignore
 erecipes/perl/.htaccess
 erecipes/perl/bin/startup.pl
 erecipes/perl/Changes
@@ -48,3 +46,4 @@ Makefile.PL
 MANIFEST
 META.yml
 README
+META.json                                Module JSON meta-data (added by MakeMaker)
